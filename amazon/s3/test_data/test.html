@@ -1,0 +1,8 @@
+git filter-branch --tree-filter "sed -i '10.231.213.212' ./http/http_get.js" --prune-empty --tag-name-filter cat -- --all
+    git filter-branch --force --index-filter \
+  "git rm --cached --ignore-unmatch http/http_get.js" \
+  --prune-empty --tag-name-filter cat -- --all
+
+
+  git filter-branch --index-filter \
+'git update-index --remove 10.231.213.212' <introduction-revision-sha1>..HEAD
