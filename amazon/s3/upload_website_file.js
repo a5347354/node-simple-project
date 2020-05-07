@@ -1,6 +1,6 @@
-const fs = require('fs') // from node.js
 const path = require('path') // from node.js
 const AWS = require('aws-sdk')
+const s3 = require("./module.js");
 
 const config = {
   accessKeyId: 'ACCESS_KEY_ID',
@@ -18,70 +18,8 @@ const fileConfig = {
   s3BucketName: 'website',
   folderPath: './test_data' // path relative script's location
 }
-
 // resolve full folder path
 const distFolderPath = path.join(__dirname, fileConfig.folderPath)
 
-fileUpload(distFolderPath, '')
-// get of list of files from 'dist' directory
-function fileUpload (distFolderPath, folderName) {
-  fs.readdir(distFolderPath, (err, files) => {
-    // if (err) { throw err }
-    if (!files || files.length === 0) {
-      console.log(`provided folder '${distFolderPath}' is empty or does not exist.`)
-      console.log('Make sure your project was compiled!')
-      return
-    }
-
-    // for each file in the directory
-    for (const fileName of files) {
-    // get the full path of the file
-      const filePath = path.join(distFolderPath, fileName)
-      
-      // ignore if directory
-      if (fs.lstatSync(filePath).isDirectory()) {
-        let folderPath
-        if(folderName === ''){
-          folderPath = fileName
-        }else{
-          folderPath = folderName + '/' + fileName
-        }
-        fileUpload(filePath, folderPath)
-        continue
-      }
-
-      // read file contents
-      fs.readFile(filePath, (error, fileContent) => {
-      // if unable to read file contents, throw exception
-        if (error) { throw error }
-        let folderPath
-        if(folderName === ''){
-          folderPath = fileName
-        }else{
-          folderPath = folderName + '/' + fileName
-        }
-
-        let extn = folderPath.split('.').pop();
-        let contentType = 'application/octet-stream';
-        if (extn == 'html') contentType = "text/html";
-        if (extn == 'css') contentType = "text/css";
-        if (extn == 'js') contentType = "application/javascript";
-        if (extn == 'png' || extn == 'jpg' || extn == 'gif') contentType = "image/" + extn;
-        console.log(folderPath)
-        // upload file to S3
-        s3Client.putObject({
-          Bucket: fileConfig.s3BucketName,
-          Key:  folderPath,
-          Body: fileContent,
-          ContentType: contentType,
-          ACL:'public-read'
-        }, (res) => {
-          if (res !== null) {
-            console.log(`Response: '${res}'!`)
-          }
-          console.log(`Successfully uploaded '${fileName}'!`)
-        })
-      })
-    }
-  })
-}
+// s3.deleteObject(s3Client, fileConfig.s3BucketName)
+s3.uploadAllWebsiteFolder(s3Client, distFolderPath, fileConfig)
